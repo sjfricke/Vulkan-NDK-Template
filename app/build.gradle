@@ -1,0 +1,49 @@
+apply plugin: 'com.android.application'
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+def ndkDir = properties.getProperty('ndk.dir')
+def valLayerBinDir = "${ndkDir}/sources/third_party/vulkan/src/build-android/jniLibs"
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "28.0.3"
+    defaultConfig {
+        applicationId "com.sjfricke.vulkan.template"
+        minSdkVersion 24
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+
+        ndk.abiFilters 'armeabi-v7a', 'arm64-v8a'
+        externalNativeBuild {
+            cmake.arguments '-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_static'
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs {
+                // Must have ndk-r12 or better which including layer binaries
+                srcDirs = ["${valLayerBinDir}"]
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        version '3.10.2'
+        cmake.path 'src/main/cpp/CMakeLists.txt'
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+}
